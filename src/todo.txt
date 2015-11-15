@@ -1,0 +1,14 @@
+Todo List
+---------
+
+1) Implement observability scores (section 2.2)
+
+2) Implement temporal observability using SVD (section 2.3)
+
+3) Implement submodular learning using algorithm 1 (section 3)
+
+4) Implement camera calibration (use Matlab toolbox)
+
+4) Implement implement ego-motion experiment (section 4.2, uses code from [31])
+
+5) If time, implement data-association experiment (section 4.3, uses code from [7])
