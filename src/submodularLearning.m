@@ -15,7 +15,11 @@ function [Rstar] = submodularLearning(X, R, Kstar)
 %
 %           R   a map container of K elements where the key is the index of
 %               the row block/vector Rk and the element is the actual 
-%               1 by m candidate row vector Rk
+%               1 by m candidate row vector Rk. The index should be treated
+%               as the index of the row as if R was a K by m matrix. An
+%               alternative way of viewing the index is that if each Rk is
+%               unique to a feature, then the map key can be the feature
+%               id.
 %
 %           Kstar   The number of row blocks/vectors to add to X.
 %
@@ -28,33 +32,30 @@ function [Rstar] = submodularLearning(X, R, Kstar)
 %%
 [n, m] = size(X);
 assert(n >= m);
-
 Rstar = containers.Map({},[]);
-numAdded = 0; % number of Rstar rows added, right now...this 
-while (numAdded < Kstar)
-%while (length(Rstar) < Kstar)
+
+while (length(Rstar) < Kstar)
    %% calculate r = argmax FsigMin(X, R)
    [r, idx] = optFsigMin(X, R);
    
-   %% add r to Rstar set (IF IDX IS THE FEATURE ID, USE IDX AS THE KEY)
-   Rstar(numAdded + 1) = r;
-   numAdded = numAdded + 1;
-   %Rstar(idx) = r;
+   %% add r to Rstar set
+   Rstar(idx) = r;
    
    %% remove r from R
    R.remove(idx);
 end
-
 end
 
+%%
+%
 function [r, idx] = optFsigMin(X, R)
-%% do the argmax of the min F here
-maxSig = 0;
+%% optFsigMin
+% peroforms argmin FminSig([X', R(k)']')
+%%
 [n, m] = size(X);
 assert(n >= m);
 
 x = [X; zeros(1,m)];
-
 keySet = keys(R);
 minVals = continer.Map(keySet, zeros(size(keySet),1));
 
@@ -62,13 +63,15 @@ for k = keySet
     %% set last row of expanded x SOM to R(k)
     x(n+1,:) = R(k);
     
-    %% compute svd of x
+    %% compute svd of x to get vector of singular values in decreasing order
+    s = svd(x, 'econ');
     
-    %% find minSig and add to minVals
-    
+    %% add min singular value to minVals
+    minVals(k) = s(end);
 end
 
-%% find max of minSig and the corresponding k and R(k)
+%% find max of min signular values and the corresponding k and R(k)
+maxSig = 0;
 for k = keySet
    if (maxSig < minVals(k))
        idx = k;
