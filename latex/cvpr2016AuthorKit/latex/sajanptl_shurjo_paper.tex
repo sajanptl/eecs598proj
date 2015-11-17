@@ -163,7 +163,7 @@ The authors of this paper propose an approach to the VSLAM problem using a combi
 
 %-------------------------------------------------------------------------
 \subsection{Innovative Contribution}
-The VSLAM problem has been approached from the perspective of 3D object recognition before. However these methods generally reveal  huge amounts of wasted computational effort via repeated low level geometry processing of the 3D objects. To counter this, the authors propose the building of pose graph maps based on an 'object-oriented' approach that directly encodes the positions of recognized 3D structures. With each new measurement, the graph is continually optimized with new measurements from the sensors and allows for efficient tracking of the camera system based on recognized landmarks. In addition to this, the algorithms make the assumption that the world has "intrinsic symmetry in the form of repetitive objects" thereby allowing for the the objects in a scene to be identified and segmented as salient repeated elements. The algorithm leverages this repetetiveness along with the efficient use of GPU architectures to provide a real time processing system. 
+The VSLAM problem has been approached from the perspective of 3D object recognition before. However these methods generally reveal  huge amounts of wasted computational effort via repeated low level geometry processing of the 3D objects. To counter this, the authors propose the building of pose graph maps based on an ``object-oriented" approach that directly encodes the positions of recognized 3D structures. With each new measurement, the graph is continually optimized with new measurements from the sensors and allows for efficient tracking of the camera system based on recognized landmarks. In addition to this, the algorithms make the assumption that the world has ``intrinsic symmetry in the form of repetitive objects" thereby allowing for the the objects in a scene to be identified and segmented as salient repeated elements. The algorithm leverages this repetetiveness along with the efficient use of GPU architectures to provide a real time processing system. 
 
 %-------------------------------------------------------------------------
 \subsection{Proposed Method}
@@ -175,7 +175,7 @@ The VSLAM problem has been approached from the perspective of 3D object recognit
 
 \textbf{Camera Tracking and Object Pose Estimation:} The iterative closest point (ICP) algorithm is used to to track the pose of the camera model based on the earlier computed object based locations. A Huber penalty function is used to in this optimization process. Criteria is developed to ensure successful convergence of the tracking error.
 
-\textbf{Graph Optimization:} The poses of the static object is now viewed as a graph optimization problem which minimizes the sum over all the measurement constraints based on the known features of each object. T
+\textbf{Graph Optimization:} The poses of the static object is now viewed as a graph optimization problem which minimizes the sum over all the measurement constraints based on the known features of each object.
 
 \textbf{Relocalization:} The system accounts for a loss in camera tracking by re-initilazing localization based on matching at least 3 of the objects seen in the previously tracked long-term graph. 
 
