@@ -5,7 +5,7 @@ function [Rstar] = submodularLearning(X, R, Kstar)
 %  SVD calculation phase of GF-SLAM. This is called when the thresholding
 %  of the singular values results in a less than desired number of good
 %  features (anchors).
-%   
+%   hm
 %  INPUTS:  X   n by m SOM matrix for the features with high observability 
 %               scores (passing the threshold score), where n >= m. These 
 %               are for the features that are going to become anchors after
