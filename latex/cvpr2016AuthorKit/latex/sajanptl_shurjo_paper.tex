@@ -37,6 +37,7 @@ University of Michigan\\
 % To save space, use either the email address or home page, not both
 \and
 Shurjo Banerjee\\
+University of Michigan\\
 %Institution2\\
 %First line of institution2 address\\
 {\tt\small shurjo@umich.edu}
@@ -47,22 +48,20 @@ Shurjo Banerjee\\
 
 %%%%%%%%% ABSTRACT
 \begin{abstract}
-Talk about overall problem of vision-based SLAM. Then give 1 sentence
-summary of each paper. Then tell that we've implemented one and show 
-our results.
-%   The ABSTRACT is to be in fully-justified italicized text, at the top
-%   of the left-hand column, below the author and affiliation
-%   information. Use the word ``Abstract'' as the title, in 12-point
-%   Times, boldface type, centered relative to the column, initially
-%   capitalized. The abstract is to be in 10-point, single-spaced type.
-%   Leave two blank lines after the Abstract, then begin the main text.
-%   Look at previous CVPR abstracts to get a feel for style and length.
+The overall problem of Visual Simultaneous Localization and Mapping (VSLAM) and its different aspects have 
+been researched in the computer vision community extensively. This paper critiques three papers on VSLAM 
+and provides an analysis of the innovative contributions of each. Robust Large Scale Monocular Simultaneous Localization and Mapping proposes a framework for implementing VSLAM using monocular cameras. SLAM++: Simultaneous Localisation and Mapping at the Level of Objects proposes a method for VLSAM using prior knowledge of the environment and object recognition. Good Features to Track for Visual SLAM (GF-SLAM) focuses on the aspect of finding good visual features to use in VSLAM based on their temporal observability. This paper also provides an analysis of the implementation of the GF-SLAM paper and the recreation of the paper's key experiment.
 \end{abstract}
 
 %%%%%%%%% BODY TEXT
 \section{Introduction}
+The problem of estimating a 3D model the environment as sensed by a camera as well as estimating the 
+camera's trajectory is Visual Simultaneous Localization and Mapping (VSLAM).  The computer vision community has researched 
+and provided innovative solutions that focus on different aspects of the overall problem. In this paper, we analyze the following three CVPR conference papers on VSLAM, discussing their innovative solution to a particular aspect of VLSAM or the problem as a whole, implementation, and subsequent conclusions: 
+1) Robust Large Scale Monocular Visual SLAM [1], 
+2) SLAM++: Simultaneous Localisation and Mapping at the Level of Objects [2], and 
+3) Good Features to Track for Visual SLAM [3]. We also provide an in-depth analysis of our implementation of Zhang \etal [3] and the conclusions drawn from the reproduction of the paper's key experiment.
 
-Introduction goes here. Define problem of Visual Simultaneous Localization And Mapping (VSLAM) which estimates a 3D model or map of the environment in which a camera moves along a trajectory in [?].  
 %------------------------------------------------------------------------
 % Critique of Monocular VSLAM
 %-------------------------------------------------------------------------
@@ -119,8 +118,7 @@ and then using the 3-points algorithm with RANSAC and nonlinear refinement on
 those matches.
 
 \textbf{Large Scale Similarity Averaging:} To align the submaps by 
-estimating thier 
-global 3D similarity to the global reference frame, a cost function on relative 
+estimating thier global 3D similarity to the global reference frame, a cost function on relative 
 similarities is minimized by transforming the problem to a graph inference problem.  
 Outliers in the graphs (representing wrong loop closures) are rejected by the 
 \textit{outlier removal algorithm} in which loop closures are incrementally checked 
