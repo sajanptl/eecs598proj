@@ -1,0 +1,122 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage{cvpr}
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Include other packages here, before hyperref.
+
+% If you comment hyperref and then uncomment it, you should delete
+% egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
+% run, let it finish, and you should be clear).
+\usepackage[breaklinks=true,bookmarks=false]{hyperref}
+
+\cvprfinalcopy % *** Uncomment this line for the final submission
+
+\def\cvprPaperID{****} % *** Enter the CVPR Paper ID here
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+% Pages are numbered in submission mode, and unnumbered in camera-ready
+%\ifcvprfinal\pagestyle{empty}\fi
+\setcounter{page}{4321}
+\begin{document}
+
+%%%%%%%%% TITLE
+%\title{ Analysis \\SLAM++ :Simultaneous Localisation and Mapping at the Level of Objects}
+
+%\maketitle
+%\thispagestyle{empty}
+
+
+%%%%%%%%% BODY TEXT
+\section {Analysis: SLAM++}
+
+\subsection{Problem Statement}
+
+The authors of this paper propose an approach to the SLAM problem using a combination of the KinectFusion algorithm along with an efficient graph based 3D object recognition system. According to them, this approach offers several advantages of existing SLAM systems in operation that operate at the level of low level primitives (i.e. points, lines, etc). 
+
+%-------------------------------------------------------------------------
+\subsection{Innovative Contribution}
+
+The SLAM problem has been approached from the perspective of 3D object recognition before. However these methods generally reveal  huge amounts of wasted computational effort via repeated low level geometery processing of the 3D objects. To counter this, the authors propose the building of pose graph maps based on an 'object-oriented' approach that directly encodes the positions of recognized 3D structures. With each new measurement, the graph is continually optimised with new measurements from the sensors and allows for efficient tracking of the camera system based on recognized landmarks. In addition to this, the algorithms make the assumption that the world has "intrinsic symmetery in the form of repetetive objects" thereby allowing for the the objects in a scene to be identified and segmented as salient repeated elements. The algorithm leverages this repetiveness along with the efficient use of GPU architectures to provide a real time processing system. 
+
+%-------------------------------------------------------------------------
+\subsection{Proposed Method}
+
+\textbf{Creating an Object Database} - 
+The authors first create a database of repeatedly occuring objects via known KinectFusion algorithms. These are objects that are subsequently recognized and used in their SLAM process. 
+
+\textbf{SLAM Map Representation} - 
+The authors represent the world via a graph where each node stores the 6DOF pose of discovered objects relative to a fixed world frame as well as an annotation of the type of the object from the earlier created database. 
+
+\textbf{Real-Time Object Recognition} - 
+This portion of the method recognizes objects in the world based on standard mesh recognition algoriths. The implementation is parallelized on GPUs to allow the real-time detection of multiple instances of multiple objects. These correspondces are obtained via the use of Point-Pair Features (PPFs) which are four dimensional descriptors. 
+
+\textbf{Camera Tracking and Object Pose Estimation} - 
+The iterative closest point (ICP) algorithm is used to to track the pose of the camera model based on the earlier computed object based locations. A Huber penalty function is used to in this optimization process. Criteria is developed to ensure succesful convergence of the trackign error.
+
+\textbf{Graph Optimization} - 
+The poses of the static object is now viewed as a graph optimization problem which minimizes the sum over all the measurement constraints based on the known features of each object. T
+
+\textbf{Relocalization} - 
+The system accounts for a loss in camera tracking by re-initilazing localization based on matching at least 3 of the objects seen in the previously tracked long-term graph. 
+
+%-------------------------------------------------------------------------
+\subsection{Experimental Evaluation}
+The authors reference a video submitted along with this paper to CVPR as a better description of the advantages of their method. 
+
+\textbf{Loop Closure} - 
+Small loop closures are detected and compensated for by the ICP algorithm. Larger loop closures are compensated for via the use of the relocalization method. 
+
+\textbf{Large Scale Mapping} - 
+Scaled mapping of a large room (15mX10mX3m) was obtained along with the mapping of 34 different objects around the room. The algorithm uses no priors regarding the original placement of these objects.
+
+\textbf{Moved Object Detection} - 
+The algorithm also displays the ability to track these objects while they, themselves are in motion. 
+
+\textbf{System Statistics} - 
+The algorithm displays the amount of storage used as compared to the more traditional KinectFusion algorithm. The given mapped rooms is stored in about 20MB of space as compared to the 1.4GB used by KinectFusion. The resultant compression ratio is 1/70 which is a dramatic improvement. 
+
+%-------------------------------------------------------------------------
+\subsection{Subsequent Conclusions}
+The paper makes several bold claims with regard to its own contributions to the literature. The graph based optimization method does indeed seem novel and the system has significantly large data compression ratio when compared to the KinectFusion algorith. UnfortunatelyThe experimentally evaluated conclusions are quite sparse when compared to the dense and well written introduction and methodology. The biggest issue pertains from the fact that no standard metric is used to compare the system's advantages and efficieny to other 3D object recognition based SLAM approaches. Thus, though several claims are made about the paper's SLAM advantages over other methods, there are no easy ways to determine the validity of these claims.
+
+\clearpage
+
+%-------------------------------------------------------------------------
+
+ 
+
+%-------------------------------------------------------------------------
+\section {Analysis: \\Good Features to \\Track for Visual SLAM}
+
+\subsection{Problem Statement}
+
+\subsection{Innovative Contribution}
+
+\textbf{System Observability Measure}
+
+\textbf{Rank-k Temporal Update of Observability Score}
+
+\subsection{Proposed Method}
+
+\textbf{Computation of System Observability Measure}
+
+\textbf{Computation of Rank-k Temporal Update of Observability Score}
+
+\textbf{Submodular Learning for Feature Grouping}
+
+
+\subsection{Experimental Method}
+
+\textbf{Moved Object Detection} - Ego motion estimation
+
+\subsection{Subsequent Conclusions}
+
+It's pure shit
+
+
+\end{document}
