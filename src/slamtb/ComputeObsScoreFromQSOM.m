@@ -1,20 +1,22 @@
-function TAUS = ComputeObsScoreFromQSOM(Q_SOM, currentFeatures, RowsPerFeature, time_start, time_end)
+function TAUS = ComputeObsScoreFromQSOM(Q_SOM, currentFeatures, RowsPerFeature, time_start, time_end, n)
 
     timeDiff = time_end - time_start;
 
     TAUS = zeros(1,length(currentFeatures));
     for i = 1:length(currentFeatures)
-%         featureMatrix = Q_SOM((currentFeatures(i)-1)*RowsPerFeature + 1: (currentFeatures(i))*RowsPerFeature , (time_start-1)*13+1:time_end*13);
+%         featureMatrix = Q_SOM((currentFeatures(i)-1)*RowsPerFeature + 1: (currentFeatures(i))*RowsPerFeature , :);
         
-        featureMatrix = Q_SOM((currentFeatures(i)-1)*RowsPerFeature + 1: (currentFeatures(i))*RowsPerFeature , ...
-            end - (timeDiff +1)*13 + 1:end);
+        featureMatrix = Q_SOM(currentFeatures(i):n:end,:);
 
-        [~,S,~] = svds(featureMatrix);
+        singVals = svds(featureMatrix)';
 
-        singVals = diag(S);
         singVals(singVals<1e-5) = [];
         tau = min(singVals);
-        TAUS(i) = tau;
+        if ~isempty(tau)
+            TAUS(i) = tau;
+        else
+            TAUS(i) = 0;
+        end
     end
 
 end

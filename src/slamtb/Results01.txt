@@ -1,0 +1,9 @@
+Sigma = 0.5000, Anchorss = 3.0000, p_without = 6.3591, e_without = 0.7082, p_with = 9.2367, e_with = 1.1207
+Sigma = 0.5000, Anchorss = 4.0000, p_without = 6.3591, e_without = 0.7082, p_with = 8.4190, e_with = 7.3229
+Sigma = 0.5000, Anchorss = 5.0000, p_without = 6.3591, e_without = 0.7082, p_with = 5.7821, e_with = 7.6059
+Sigma = 0.5000, Anchorss = 6.0000, p_without = 6.3591, e_without = 0.7082, p_with = 12.7765, e_with = 1.4466
+Sigma = 0.5000, Anchorss = 7.0000, p_without = 6.3591, e_without = 0.7082, p_with = 8.6021, e_with = 7.3456
+Sigma = 0.5000, Anchorss = 8.0000, p_without = 6.3591, e_without = 0.7082, p_with = 7.3695, e_with = 7.3661
+Sigma = 0.5000, Anchorss = 10.0000, p_without = 6.3591, e_without = 0.7082, p_with = 9.0730, e_with = 7.2050
+Sigma = 0.5000, Anchorss = 12.0000, p_without = 6.3591, e_without = 0.7082, p_with = 11.6364, e_with = 0.8293
+Sigma = 1.0000, Anchorss = 3.0000, p_without = 4.8382, e_without = 0.9237, p_with = 8.5547, e_with = 2.1091

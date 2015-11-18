@@ -5,7 +5,7 @@ function [SimRob,SimSen,SimLmk,SimOpt] = createSimStructures(Robot,Sensor,World,
 %   Copyright 2008-2009 Joan Sola @ LAAS-CNRS.
 
 % Random generator
-if SimOpt.random.newSeed
+if false % SimOpt.random.newSeed
     SimOpt.random.seed = sum(100*clock);
     rng(SimOpt.random.seed);
     %    randn('state',SimOpt.random.seed);

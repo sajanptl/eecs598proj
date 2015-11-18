@@ -13,7 +13,7 @@
 %   initialization methods, and possibly extensions to multi-map SLAM. Good
 %   luck!
 %
-%   - Expert users may want to add code for real-data experiments. 
+%   - Expert users may want to add code for real-data experiments.
 %
 %   See also USERDATA, USERDATAPNT, USERDATALIN.
 %
@@ -30,13 +30,25 @@
 %% OK we start here
 
 % clear workspace and declare globals
-clear
-global Map    
+% clear
+global Map
 global PinholeProj
 global numLocalFrames
+global NumFeaturesToUse 
+global applyFeatureReduction
+
+global posNorm
+global eulNorm
+
+global currentSigma
 
 % No of frames to keep in QSOM
 numLocalFrames = 10;
+
+% NumFeaturesToUse = 10; 
+% applyFeatureReduction = true;
+% currentSigma = .5;
+
 %% I. Specify user-defined options - EDIT USER DATA FILE userData.m
 
 userData;           % user-defined data. SCRIPT.
@@ -95,146 +107,182 @@ p2 = 0;
 r2 = 0;
 
 currentFeatures = [];
+RowsPerFeature = nan;
 
+Q_SOM = [];
 % fh = figure;
 
+fh = fopen('Data Logging_Sigma_0_5.txt','r');
 
+rNorm = 0;
+eNorm = 0;
+
+% Seed random number generator to create same experiment
 %% IV. Main loop
 for currentFrame = Tim.firstFrame : Tim.lastFrame
-    
+%     currentFrame
     % 1. SIMULATION
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+    
     % Simulate robots
     for rob = [SimRob.rob]
-
+        
         % Robot motion
         SimRob(rob) = simMotion(SimRob(rob),Tim);
         
         % Simulate sensor observations
         for sen = SimRob(rob).sensors
-
+            
             % Observe simulated landmarks
             Raw(sen) = simObservation(SimRob(rob), SimSen(sen), SimLmk, SimOpt) ;
-
+            
         end % end process sensors
-
+        
     end % end process robots
     
     
     % 1.5 REDUCE NUMBER OF FEATURES NEEDED
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     figure(fh);
-%     surf(PinholeProj(:,Raw(sen).data.points.app));
-%     drawnow
-
-    if currentFrame == 1
-        q_0 = SimRob.state.x(4:end);
-        euls_0 = q2e(q_0);
-        
-    elseif currentFrame == 2
-        q_1 = SimRob.state.x(4:end);
-        euls_1 = q2e(q_1);
-        
-        
-    elseif currentFrame == 3
-        q_2 = SimRob.state.x(4:end);
-        euls_2 = q2e(q_2);
-        
-        domega_0 = (euls_1 - euls_0)/dt;
-        domega_1 = (euls_2 - euls_1)/dt;
-        
-        p = PinholeProj';
-        r = SimRob.state.x(1:3);
-        
-        currentFeatures = Raw(sen).data.points.app;
-        tempH = Raw(sen).data.points.coord'; 
-        h(currentFeatures,:) = tempH;
-        
-        % No of rows per feature %%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % PUT THIS IN A BETTER PLACE
-        RowsPerFeature = 146; %size(Q_SOM,1)/n;
-        
-        
-    else
-        %% The General case
-        euls_0 = euls_1;
-        euls_1 = euls_2;
-        q_1 = q_2;
-        q_2 = SimRob.state.x(4:end);
-        euls_2 = q2e(q_2);
-        
-        p = p2;
-        p2 = PinholeProj';
-        
-        r = r2;
-        r2 = SimRob.state.x(1:3);
-        
-        h = h2;
-        currentFeatures = Raw(sen).data.points.app;
-        tempH = Raw(sen).data.points.coord'; 
-        h2(currentFeatures, :) = tempH;       
-        
-        domega_0 = (euls_1 - euls_0)/dt;
-        domega_1 = (euls_2 - euls_1)/dt;       
-        
-        
-        [H, F, Q, OMEGA] = SysObsMeasure(q_1,  q_2, domega_0, domega_1, dt, Nf, Na, h, h2, r, r2, p, p2);
-        Q_SOM = (formSOM(F, H, n, currentFrame, Q, OMEGA, dt));
-        
-%         size(Q_SOM)
-        
-        %% USE QSOM TO RANK CURRENT FEATURES
-        
-        % Compute Observability score
-        TAUS = ComputeObsScoreFromQSOM(Q_SOM, currentFeatures, RowsPerFeature, max(1,currentFrame-5), currentFrame);
-        [~,ind] = sort(TAUS,'descend');
-        
-
-        
-        %% Replace Raw data for localization
-%         
-        NumFeaturesToUse = 5;
-
-        currentFeatures;
-        rankedFeatures = currentFeatures(ind(1:NumFeaturesToUse));
-        
-        Raw(sen).data.points.app = rankedFeatures;
-        Raw(sen).data.points.coord = Raw(sen).data.points.coord(:,ind(1:NumFeaturesToUse)); 
-        
+    %     figure(fh);
+    %     surf(PinholeProj(:,Raw(sen).data.points.app));
+    %     drawnow
+    
+    if applyFeatureReduction
+        if currentFrame == 1
+            q_0 = SimRob.state.x(4:end);
+            euls_0 = q2e(q_0);
+            
+            % Select numFeatures for given few points
+            Raw(sen).data.points.app = Raw(sen).data.points.app(:,(1:NumFeaturesToUse));
+            Raw(sen).data.points.coord = Raw(sen).data.points.coord(:,(1:NumFeaturesToUse));
+            
+        elseif currentFrame == 2
+            q_1 = SimRob.state.x(4:end);
+            euls_1 = q2e(q_1);
+            
+            % Select numFeatures for given few points
+            Raw(sen).data.points.app = Raw(sen).data.points.app(:,(1:NumFeaturesToUse));
+            Raw(sen).data.points.coord = Raw(sen).data.points.coord(:,(1:NumFeaturesToUse));
+            
+            
+        elseif currentFrame == 3
+            q_2 = SimRob.state.x(4:end);
+            euls_2 = q2e(q_2);
+            
+            domega_0 = (euls_1 - euls_0)/dt;
+            domega_1 = (euls_2 - euls_1)/dt;
+            
+            p = PinholeProj';
+            r = SimRob.state.x(1:3);
+            
+            currentFeatures = Raw(sen).data.points.app;
+            tempH = Raw(sen).data.points.coord';
+            h(currentFeatures,:) = tempH;
+            
+            % No of rows per feature %%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % PUT THIS IN A BETTER PLACE
+            
+            % Select numFeatures for given few points
+            Raw(sen).data.points.app = Raw(sen).data.points.app(:,(1:NumFeaturesToUse));
+            Raw(sen).data.points.coord = Raw(sen).data.points.coord(:,(1:NumFeaturesToUse));
+            
+            
+        else
+            %% The General case
+            euls_0 = euls_1;
+            euls_1 = euls_2;
+            q_1 = q_2;
+            q_2 = SimRob.state.x(4:end) + randn(size(SimRob.state.x(4:end)))*1e-3;
+            euls_2 = q2e(q_2) + randn(size(q2e(q_2)))*1e-3;
+            
+            p = p2;
+            p2 = PinholeProj' + randn(size(PinholeProj'))*1e-3;
+            
+            r = r2;
+            r2 = SimRob.state.x(1:3)+ randn(size(SimRob.state.x(1:3)))*1e-3;
+            
+            h = h2;
+            currentFeatures = Raw(sen).data.points.app;
+            tempH = Raw(sen).data.points.coord';
+            h2(currentFeatures, :) = tempH + randn(size(tempH))*1e-3;
+            
+            domega_0 = (euls_1 - euls_0)/dt;
+            domega_1 = (euls_2 - euls_1)/dt;
+            
+            
+            % H here is a function of the frame number
+            [H, F, Q, OMEGA] = SysObsMeasure(q_1,  q_2, domega_0, domega_1, dt, Nf, Na, h, h2, r, r2, p, p2);
+            
+            if currentFrame == 4
+                Q_SOM = formSOM(Q_SOM, F, H, n, Q, OMEGA, dt);
+                
+                %         elseif currentFrame <numLocalFrames+1
+                % SVD based update to Q_SOM
+                
+            else
+                Q_SOM = formSOM_viaReplacement(Q_SOM, H, n, Q, OMEGA, dt, currentFrame);
+            end
+            
+            %% USE QSOM TO RANK CURRENT FEATURES
+            
+            
+            if currentFrame > numLocalFrames + 2
+                RowsPerFeature = size(Q_SOM,1)/n;
+                
+                % Compute Observability score
+                TAUS = ComputeObsScoreFromQSOM(Q_SOM, currentFeatures, RowsPerFeature, max(1,currentFrame-5), currentFrame, n);
+                [TAUS ,ind] = sort(TAUS,'descend');
+                
+                % Replace Raw data for localization
+                %
+                
+                rankedFeatures = currentFeatures(ind(1:NumFeaturesToUse));
+                
+                Raw(sen).data.points.app = rankedFeatures;
+                Raw(sen).data.points.coord = Raw(sen).data.points.coord(:,ind(1:NumFeaturesToUse));
+                
+%                 size(Q_SOM)imgu
+            end
+            
+        end
     end
     
-
+    
     % 2. ESTIMATION
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+    
     % Process robots
     for rob = [Rob.rob]
-
+        
         % Robot motion
         % NOTE: in a regular, non-simulated SLAM, this line is not here and
         % noise just comes from the real world. Here, the estimated robot
         % is noised so that the simulated trajectory can be made perfect
         % and act as a clear reference. The noise is additive to the
         % control input 'u'.
-        Rob(rob).con.u = SimRob(rob).con.u + Rob(rob).con.uStd.*randn(size(Rob(rob).con.uStd));
+        
+        uStD = Rob(rob).con.uStd;
+        
+        uStd(1:3) = currentSigma;
+        
+        Rob(rob).con.u = SimRob(rob).con.u + uStD.*randn(size(Rob(rob).con.uStd));
         Rob(rob) = motion(Rob(rob),Tim);
         
-        Map.t = Map.t + Tim.dt;                
-
-
+        Map.t = Map.t + Tim.dt;
+        
+        
         % Process sensor observations
         for sen = Rob(rob).sensors
-
+            
             % Observe knowm landmarks
             [Rob(rob),Sen(sen),Lmk,Obs(sen,:)] = correctKnownLmks( ...
                 Rob(rob),   ...
                 Sen(sen),   ...
                 Raw(sen),   ...
-                Lmk,        ...   
+                Lmk,        ...
                 Obs(sen,:), ...
                 Opt) ;
-
+            
             % Initialize new landmarks
             ninits = Opt.init.nbrInits(1 + (currentFrame ~= Tim.firstFrame));
             for i = 1:ninits
@@ -246,62 +294,78 @@ for currentFrame = Tim.firstFrame : Tim.lastFrame
                     Obs(sen,:), ...
                     Opt) ;
             end
-
+            
         end % end process sensors
-
+        
     end % end process robots
-
-
+    
+    % 2.5 Compare Data
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    rEst = Rob.state.x(1:3);
+    rRob = SimRob.state.x(1:3);
+    
+    rNorm = rNorm + norm(rEst - rRob, 2);
+    
+    eEst = q2e(Rob.state.x(4:7));
+    eRob = q2e(SimRob.state.x(4:7));
+    
+    eNorm = eNorm + norm(eEst - eRob, 2);
+    
+    
     % 3. VISUALIZATION
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    if currentFrame == Tim.firstFrame ...
-            || currentFrame == Tim.lastFrame ...
-            || mod(currentFrame,FigOpt.rendPeriod) == 0
-        
-        % Figure of the Map:
-        MapFig = drawMapFig(MapFig,  ...
-            Rob, Sen, Lmk,  ...
-            SimRob, SimSen, ...
-            FigOpt);
-        
-        if FigOpt.createVideo
-            makeVideoFrame(MapFig, ...
-                sprintf('map-%04d.png',currentFrame), ...
-                FigOpt, ExpOpt);
-        end
-        
-        % Figures for all sensors
-        for sen = [Sen.sen]
-            SenFig(sen) = drawSenFig(SenFig(sen), ...
-                Sen(sen), Raw(sen), Obs(sen,:), ...
-                FigOpt);
-            
-            if FigOpt.createVideo
-                makeVideoFrame(SenFig(sen), ...
-                    sprintf('sen%02d-%04d.png', sen, currentFrame),...
-                    FigOpt, ExpOpt);
-            end
-            
-        end
-
-        % Do draw all objects
-        drawnow;
-    end
     
-
+%     if currentFrame == Tim.firstFrame ...
+%             || currentFrame == Tim.lastFrame ...
+%             || mod(currentFrame,FigOpt.rendPeriod) == 0
+%         
+%         % Figure of the Map:
+%         MapFig = drawMapFig(MapFig,  ...
+%             Rob, Sen, Lmk,  ...
+%             SimRob, SimSen, ...
+%             FigOpt);
+%         
+%         if FigOpt.createVideo
+%             makeVideoFrame(MapFig, ...
+%                 sprintf('map-%04d.png',currentFrame), ...
+%                 FigOpt, ExpOpt);
+%         end
+%         
+%         % Figures for all sensors
+%         for sen = [Sen.sen]
+%             SenFig(sen) = drawSenFig(SenFig(sen), ...
+%                 Sen(sen), Raw(sen), Obs(sen,:), ...
+%                 FigOpt);
+%             
+%             if FigOpt.createVideo
+%                 makeVideoFrame(SenFig(sen), ...
+%                     sprintf('sen%02d-%04d.png', sen, currentFrame),...
+%                     FigOpt, ExpOpt);
+%             end
+%             
+%         end
+%         
+%         % Do draw all objects
+%         drawnow;
+%     end
+    
+    
     % 4. DATA LOGGING
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % TODO: do something here to collect data for post-processing or
     % plotting. Think about collecting data in files using fopen, fwrite,
     % etc., instead of creating large Matlab variables for data logging.
     
-
+    
 end
 
 %% V. Post-processing
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Enter post-processing code here
+
+posNorm = rNorm;
+eulNorm = eNorm;
 
 
 
@@ -333,7 +397,7 @@ end
 %   Copyright (c) 2008-2010, Joan Sola @ LAAS-CNRS,
 %   Copyright (c) 2010-2013, Joan Sola,
 %   Copyright (c) 2014-    , Joan Sola @ IRI-UPC-CSIC,
-%   SLAMTB is Copyright 2009 
+%   SLAMTB is Copyright 2009
 %   by Joan Sola, Teresa Vidal-Calleja, David Marquez and Jean Marie Codol
 %   @ LAAS-CNRS.
 %   See on top of this file for its particular copyright.
