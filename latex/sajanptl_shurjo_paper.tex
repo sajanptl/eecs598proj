@@ -100,7 +100,7 @@ relative similarity averaging.
 \textbf{Keyframe selection:} For each frame in the captured video, Harris Points of Interest 
 (PoI) are detected and tracked using a Lucas-Kanade tracker.  When the Euclidean distance between 
 the PoI of the current frame and previously selected keyframe is greater than a specified threshold, the 
-frame is selected as a keypoint used as input to VSLAM.
+frame is selected as a keyframe.
 
 \textbf{Submap reconstruction:} Consecutive keyframes are clustered, and using the 
 \textit{Known Rotation Problem}, a SfM algorithm is applied to each one by first extracting the SURF 
@@ -233,13 +233,6 @@ extracted from video frames by any detection method. The general idea is that fe
 observability are scored higher and the set of ``good features" is created from all features whose scores are 
 above a specified threshold based on the application of VSLAM. These good features are then called 
 anchors.
-%
-%The proposed metric is based this on system theory, in particular 
-%highlighting the contributions of observability theory to the proposed system's creation. Though observability 
-%measures have been created before, they have only been applied to 1D and 2D cases of SLAM estimation. 
-%The authors claim to be the first to have developed such an observability based ranking system in a VSLAM 
-%system comprising of 6DOF. In addition to this their method does not require full rank observability matrices, 
-%a fact which they claim is unique to this implementation. 
 
 \textbf{Rank-k Temporal Update of Observability Score}: The generation of feature observability 
 scores requires 
@@ -286,7 +279,7 @@ These coordinates are obtained after correcting for distortion which involves th
  camera.
 
 \textbf{Computation of System Observability Measure:} To compute the observability score for each feature,
-the authors define a System Observability Matrix, ${Q}_{SOM}$. ${Q}_{SOM}$ is defined for a fixed number 
+the authors define a System Observability Matrix (SOM), ${Q}_{SOM}$. ${Q}_{SOM}$ is defined for a fixed number 
 of frames, $\tau$, of the SLAM process. When the current frame iteration grows larger than $\tau$, the oldest
  elements of the now fixed size ${Q}_{SOM}$ are replaced directly by the newest feature values. $\tau$ is 
  thus an important input parameter to the system as it governs the efficiency of the overall algorithm. 
@@ -301,11 +294,18 @@ The replacement process for when $j>\tau$ is described in a later section. Each 
 Q_j^T = \begin{bmatrix} \ \ H_j^T \ | \ (H_j F_j)^T \ | \ ... \ | \ (H_j F_j^{n-1})^T  \ \ \end{bmatrix}
 \end{equation}
 where $F$ is the process matrix that relates the motion model defined in \eqref{eq:stateVector} 
-from one state to the next. 
+from one state to the next. $H$ is the measurement Jacobian where the derivatives are arranged as follows (with features and anchors abbreviated as ``feat." and ``anch." respectively):
 
-???For its complete based on the camera parameters, please refer to the original text. $H$ is called the measurement Jacobian. It is defined as follow....(anchors/not anchors?) \\ \\ 
+\noindent{}$\begin{bmatrix}
+\small{\text{image feat. w.r.t. camera state}}&\small{\text{image feat. w.r.t. world feat.}}\\
+\small{\text{image anch. w.r.t. camera state}}&0
+\end{bmatrix}$\\
 
-Due to the inherent sparsity of the matrices involved, the authors offer a  general simplification that can be applied to obtain $HF^n$ iteratively. Unfortunately this requires the new definitions of quaternion based matrices. As such the equation has been left out. Please refer to the original text for a complete description of this method.
+
+Once $Q_{SOM}$ is computed, the temporal observability scores for each feature is computed as:
+\begin{equation} \label{eq:Qjjj}
+score(f) = \sigma_{min}(Q_{SOM} \ for \ feature \ f)
+\end{equation}
 
 \textbf{Rank-k Temporal Update of Observability Score:} As can be seen from the preceding section, the computation of $Q_{SOM}$ is an extensive operation. To simplify matters the authors present an iterated SVD approach to creating $Q_{SOM}$ when $j>3$  and $j<\tau + 1$ . 
 
@@ -314,7 +314,7 @@ for the first three frames. For subsequent frames, the SVD of $Q_{SOM}$ and comb
 
 For $j>\tau + 1$ , $Q_{SOM}$ is updated via replacement. The newest ${Q}_{j}$ in \eqref{eq:Qjjj} is computed and placed in the positions occupied by the oldest elements of the matrix. As an example, if at time k, $Q_{SOM}(k) = \begin{bmatrix} \ \ Q_1^T \ | \ Q_2^T \ | \ ... \ | \ Q_k^T  \ \ \end{bmatrix}$, then at time k+1, the oldest (i.e. the first element) is replaced, ${Q}_{SOM}(k+1) = \begin{bmatrix}\ \ Q_{k+1}^T \ | \ Q_2^T \ | \ ... \ | \ Q_k^T\ \ \end{bmatrix}$.
 
-\textbf{Submodular Learning for Feature Grouping:} Sajan....
+\textbf{Submodular Learning for Feature Grouping:} If the set of anchors created after the thresholding of the feature observability scores is smaller than desired, a greedy submodular learning algorithm upgrades features with with the next best scores to anchors to complete the anchor set. This is done by creating an SOM of just the anchors and candidate rows for each remaining feature. The algorithm iterates through each candidate feature, appending it's row to the end of the anchor SOM and then taking the SVD of that matrix to get the observability score for that feature via \eqref{eq:Qjjj} with the modification that $Q_{SOM}$ is now the anchor and candidate row SOM. The feature whose row produces the maximum observability score is upgraded to be an anchor and removed from the set of features. This greedy algorithm recomputes the anchor and candidate SOMs and repeats the process until the the desired number of anchors is obtained.
 
 \begin{figure*}[t!]
         \begin{subfigure}[b]{0.25\textwidth}
@@ -337,10 +337,12 @@ For $j>\tau + 1$ , $Q_{SOM}$ is updated via replacement. The newest ${Q}_{j}$ in
                 \caption{Pinhole View (10 ranked feat.)}
                 \label{fig:mouse}
         \end{subfigure}
-        \caption{Results: (a) VSLAM is performed using all the features. All the landmarks (+ signs) are detected by the robot and used for localization. (b) Shows the pinhole view of the robot in the first scene. These pixel coordinates form $\boldsymbol{h}_{x_i}$'s \eqref{eq:featureProjection2} used in the algorithm. (c) VSLAM is performed with the the 10 highest ranked features. In the figure this is apparent from the fact that all the landmarks in the vicinity of the robot are not labelled. (d) Corresponding pinhole view. As expected, fewer features are being used for the localization process. }\label{fig:animals}
+        \caption{Experimental Results: (a) VSLAM is performed using all the features. All the landmarks (+ signs) are detected by the robot and used for localization. (b) Shows the pinhole view of the robot in the first scene. These pixel coordinates form the $\boldsymbol{h}_{x_i}$ that \eqref{eq:featureProjection2} used in the algorithm. (c) VSLAM is performed with the the 10 highest ranked features. In the figure this is apparent from the fact that all the landmarks in the vicinity of the robot are not labelled. (d) Corresponding pinhole view. As expected, fewer features are being used for the localization process.}
+\label{fig:animals}
 \end{figure*}
+
 \subsection{Experimental Method}
-\textbf{Moved Object Detection:} The authors implemented their feature reduction algorithm on readily 
+The authors implemented their feature reduction algorithm on readily 
 available simulated VSLAM data that was created by the authors of 
 %%%%%%%%%
 [31]. 
@@ -354,33 +356,30 @@ simulated robot detects as many landmarks that it can detect. The authors apply 
  that of the original algorithm. They run each simulation 40 times and count the number of times their 
  algorithm outperforms the original. The noise values used are $\sigma=\{0.5, 1.0, 1.5, 2.0, 2.5\} $. 
 The number of features used are $ K = \{ 3, 4, 5, 6, 7, 8, 10, 12 \}$. 
-%%%
-The results are tabulated below. 
-%% (need to specify table ref)
-The first row is for translation error. The second is for rotation error.
+The results are provided in Table 1. 
 \begin{table}[h]
 \begin{center}
 \begin{tabular}{|c|c|c|}
 \hline
 Metric Used & Num. Succesful & Accuracy  \\
 \hline
-  &   &   \\
-$ \sum_k || \Delta \boldsymbol{r}_{R_k}^W ||_2 $ & 37/40 & 92.5\% \\
-  &   &   \\
+ Translation Error &   &   \\
+$ \sum_k || \Delta \boldsymbol{r}_{R_k}^W ||_2 $ & 37/40 & 92.5\% \\ 
+%&   &   \\
 \hline
-  &   &   \\
+Rotation Error &   &   \\
 $ \sum_k || \Delta \boldsymbol{\theta}_{R_k}^W ||_2 $ & 33/40 & 82.5\% \\
-  &   &   \\
+%&   & \\
 \hline
 \end{tabular}
 \end{center}
-\caption{Author's Experimental Results}
+\caption{Author's experimental results.}
 \end{table}
 
 \subsection{Our Implementation}
 We chose to re-implement this ranked features algorithm. The first step was to download and run the original VSLAM EKF algorithm [31] that was used by the authors in their experimentation. The code was readily available to download and use online on the author's page.
 
-\textbf{Algorithmn Structure:} The algorithm simulates a robot moving in a circular trajectory surrounded by 72 detectable landmarks. A monocular camera is placed on the robot for visual sensing purposes. Broadly the algorithm is divided in to the following sections:
+\textbf{Algorithm Structure:} The algorithm simulates a robot moving in a circular trajectory surrounded by 72 detectable landmarks. A monocular camera is placed on the robot for visual sensing purposes. Broadly the algorithm is divided in to the following sections:
 \begin{enumerate}
   \item Data Generation - The trajectory to be followed by the robot is generated. Each landmarks's position is also generated. Care is taken to seed the random number generator at a fixed point so as to ensure consistency across measurements.
   \item Simulation - The simulated robot is moved ahead on the predefined trajectory. The measurement vectors are generated based on the location of the landmarks located by the robot. In the terms of our implementation, we consider the features to be these landmark positions. 
@@ -388,45 +387,44 @@ We chose to re-implement this ranked features algorithm. The first step was to d
 \item Visualization - The corresponding position of the landmarks, detected features, actual robot's position and orientation and estimated robot's position and orientation are visually updated on a three dimensional plot.
 \end{enumerate}
 
-\textbf{Generation of $\boldsymbol{Q}_{SOM}$:} The first step to generating the observability matrix was to map the features detected by the SLAM algorithm to their corresponding $\boldsymbol{p}_{i}^{R_k}$'s \eqref{eq:featureProjection} and $\boldsymbol{h}_{x_i}$ \eqref{eq:featureProjection2} indices.This is done between step 2 and 3 by extracting the corresponding elements from the algorithms pinhole perspective calculations. The camera's corresponding position and orientation, $\boldsymbol{x}_{R_k}^W$ \eqref{eq:stateVector} , is also extracted. These features are now used to create a corresponding $H$ matrix which in turn is used to iteratively build up $Q_{SOM}$ as described in \eqref{eq:qsom} and \eqref{eq:Qjjj} . $Q_{SOM}$ is created to contain information from 10 iterations of the EKF algorithm at a time i.e. $\tau = 10$ . As described previously, $Q_{SOM}$ is initially created iteratively, then via the iterative SVD and finally via the replacement method.
+\textbf{Calculating $\boldsymbol{Q}_{SOM}$:} The first step to generating the observability matrix was to map the features detected by the SLAM algorithm to their corresponding $\boldsymbol{p}_{i}^{R_k}$'s \eqref{eq:featureProjection} and $\boldsymbol{h}_{x_i}$ \eqref{eq:featureProjection2} indices.This is done between step 2 and 3 by extracting the corresponding elements from the algorithms pinhole perspective calculations. The camera's corresponding position and orientation, $\boldsymbol{x}_{R_k}^W$ \eqref{eq:stateVector} , is also extracted. These features are now used to create a corresponding $H$ matrix which in turn is used to iteratively build up $Q_{SOM}$ as described in \eqref{eq:qsom} and \eqref{eq:Qjjj} . $Q_{SOM}$ is created to contain information from 10 iterations of the EKF algorithm at a time i.e. $\tau = 10$ . As described previously, $Q_{SOM}$ is initially created iteratively, then via the iterative SVD and finally via the replacement method.
   
-\textbf{Computation of Feature Rank:} Step two provides us with a list of features that has been detected by the robot. Each of these features have corresponding rows in the $Q_{SOM}$ matrix. For each feature, the corresponding rows are iteratively extracted and concatenated to form a feature matrix. The SVD is computed for each of these matrices and the minimum positive singular value is extracted as a corresponding rank of each feature. 
-\begin{equation} \label{eq:Qjjj}
-score(f) = \sigma_{min}(Q_{SOM} \ for \ feature \ f)
-\end{equation}
-The resultant ranks are then used to sort the original features as well as the corresponding 
-$\boldsymbol{p}_{i}^{R_k}$'s \eqref{eq:featureProjection} and $\boldsymbol{h}_{x_i}$'s 
-\eqref{eq:featureProjection2}. A subset of the ranked features (called the anchors) is passed 
-on to the localization step and the algorithm proceeds as normal.
+\textbf{Feature Scoring:} Step two provides us with a list of features that has been detected by the robot. Each of these features have corresponding rows in the $Q_{SOM}$ matrix. For each feature, the corresponding rows are iteratively extracted and concatenated to form a feature matrix. 
+The SVD is computed for each of these matrices and the minimum positive singular value is extracted as a
+ corresponding score of each feature by \eqref{eq:qsom}. 
+ The resultant scores are then used to sort the original features as well 
+as the corresponding $\boldsymbol{p}_{i}^{R_k}$'s \eqref{eq:featureProjection} and $\boldsymbol{h}_{x_i}$'s 
+\eqref{eq:featureProjection2}. A subset of the scored features with scores above an 
+application-specified threshold is designated as the anchor set and is passed on to the localization step and the algorithm proceeds as normal.
 
-\textbf{ Experimental Implementation } 
-The experiment described by the authors is recreated exactly. 40 experiments are performed at a fixed seeded location. The experiment is run over 200 iterations for each combination of pixel noise and number of anchors from the follow sets: $\sigma=\{0.5, 1.0, 1.5, 2.0, 2.5\} $ and $ K = \{ 3, 4, 5, 6, 7, 8, 10, 12 \}$. The positional and euclidian 2-norms are used to compare the results of the original algorithm vs. the ranked features method.
+\textbf{Submodular Learning:} We implemented submodular learning to complete the anchor set as described by the paper's proposed greedy algorithm. This portion of the implementation also runs only if the resultant set of anchors after thresholding the feature scores is less than 2 below the desired number of anchors.
 
-\textbf{ Experimental Results }
-The results obtained in terms of the positional norm are tabulated below. For a complete tabulation of all the results please refer to the attached appendix. 
+\textbf{Experimental Implementation:} The experiment described by the authors is recreated exactly. 40 experiments are performed at a fixed seeded location. The experiment is run over 200 iterations for each combination of pixel noise and number of anchors from the follow sets: $\sigma=\{0.5, 1.0, 1.5, 2.0, 2.5\} $ and $ K = \{ 3, 4, 5, 6, 7, 8, 10, 12 \}$. The positional and euclidian 2-norms are used to compare the results of the original algorithm vs. the ranked features method.
 
+\textbf{Experimental Results:} Table 2 results obtained in terms of the positional norm. 
+Table 3 provides the results obtained in terms of the Euclidian norm. 
+???The ranked algorithm performed better then the original in 8/40 cases (20\%) 
+in terms of the positional norm. In terms of the euclidian norm it performed better 14/40 cases (35\%). For a complete tabulation of all the results please refer to the attached appendix.
 \begin{table}[h]
 \begin{center}
 \begin{tabular}{|c|c|c|}
 \hline
-$\sigma$ & Avg. ($ \sum_k || \Delta \boldsymbol{r}_{R_k}^W ||_2)_{all} $ & Avg. ($ \sum_k || \Delta \boldsymbol{r}_{R_k}^W ||_2)_{rnk} $  \\
+$\sigma$ & Avg. ($ \sum_k || \Delta \boldsymbol{r}_{R_k}^W ||_2)_{all} $ & Avg. ($ \sum_k || \Delta \boldsymbol{r}_{R_k}^W ||_2)_{rnk} $ \\
 \hline
-0.5  & 6.3591  &  7.0524 \\
+0.5  & 6.3591  &  7.0524\\
 \hline
-1.0  &  4.8382 &  8.9654 \\
+1.0  &  4.8382 &  8.9654\\
 \hline
-1.5  &  6.1305 &  10.1870 \\
+1.5  &  6.1305 &  10.1870\\
 \hline
-2.0  &  6.5744 &  7.0839 \\
+2.0  &  6.5744 &  7.0839\\
 \hline
-2.5  &  6.4082 &  8.5952 \\
+2.5  &  6.4082 &  8.5952\\
 \hline
 \end{tabular}
 \end{center}
 \caption{Position Based Results}
 \end{table}
-
-The results obtained in terms of the euclian norm are tabulated in table 3. 
 
 \begin{table}[t]
 \begin{center}
@@ -449,13 +447,10 @@ $\sigma$ & Avg. ($ \sum_k || \Delta \boldsymbol{\theta}_{R_k}^W ||_2)_{all} $ & 
 \caption{Euclidian Norm Based Results}
 \end{table}
 
-The ranked algorithm performed better then the original in 8/40 cases (20\%) in terms of the positional norm. In terms of the euclidian norm it performed better 14/40 cases (35\%). 
-
 \subsection{Subsequent Conclusions}
-
 As can be seen, the results we obtained do not agree with that of the authors' though the experiment is reproduced exactly. We believe the reason for this an incorrect creation of the $Q_{SOM}$ matrix. This paper turned out to be particularly difficult to re-implement. The main reason behind this was the convoluted mathematical definitions and notations used by the authors especially with regard to the contents and creation of $Q_{SOM}$. We tried to contact the authors via email but are unfortunately yet to hear back from them. They also do not provide any of the software or code used.
 
-In conclusion, based on the metric they define, the author's feature ranking algorithm appears to succesfully aid SLAM processes. Unfortunately, their results do not appear to be easy to reproduce. For this algorithm to achieve more success in the community it is our suggestion that the authors clean up their mathematical notation as well as release commented software and code which performs the algorithm succesfully.    
+In conclusion, based on the metric they define, the author's feature ranking algorithm appears to successfully aid SLAM processes. Unfortunately, their results do not appear to be easy to reproduce. For this algorithm to achieve more success in the community it is our suggestion that the authors clean up their mathematical notation as well as release commented software and code which performs the algorithm successfully.    
 
 \section{Conclusion}
 
