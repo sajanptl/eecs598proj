@@ -1,2 +1,6 @@
 *~
 bin/
+*.DS_STORE
+*.aux
+*.log
+*.synctex.gz
