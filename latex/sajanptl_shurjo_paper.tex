@@ -61,15 +61,18 @@ and provides an analysis of the innovative contributions of each. Robust Large S
 The problem of estimating a 3D model the environment as sensed by a camera as well as estimating the 
 camera's trajectory is Visual Simultaneous Localization and Mapping (VSLAM). The computer vision community has researched 
 and provided innovative solutions that focus on different aspects of the overall problem. In this paper, we analyze the following three CVPR conference papers on VSLAM, discussing their innovative solution to a particular aspect of VLSAM or the problem as a whole, implementation, and subsequent conclusions: 
-1) Robust Large Scale Monocular Visual SLAM \cite{Bourmaud_2015_CVPR}, 
-2) SLAM++: Simultaneous Localisation and Mapping at the Level of Objects \cite{Salas-Moreno_2013_CVPR}, and 
-3) Good Features to Track for Visual SLAM \cite{Zhang_2015_CVPR}. We also provide an in-depth analysis of our implementation of \cite{Zhang_2015_CVPR} and the conclusions drawn from the reproduction of the paper's key experiment.
+\begin{enumerate}
+\item Robust Large Scale Monocular Visual SLAM \cite{Bourmaud_2015_CVPR}
+\item SLAM++: Simultaneous Localisation and Mapping at the Level of Objects \cite{Salas-Moreno_2013_CVPR}
+\item Good Features to Track for Visual SLAM \cite{Zhang_2015_CVPR} 
+\end{enumerate}
+We also provide an in-depth analysis of our implementation of \cite{Zhang_2015_CVPR} and the conclusions drawn from the reproduction of the paper's key experiment.
 
 %------------------------------------------------------------------------
 % Critique of Monocular VSLAM
 %-------------------------------------------------------------------------
-\section{Robust Large Scale Monocular Visual SLAM}
-
+%\section{Robust Large Scale Monocular Visual SLAM}
+\section{Robust Large Scale Monocular VSLAM}
 \subsection{Problem Statement}
 This paper focuses on the problem of using calibrated monocular cameras to perform VSLAM 
 while making the 
@@ -159,7 +162,8 @@ global map and camera trajectory estimates with loop closure through the outlier
 propagation algorithms. Even with the described limitations, the evaluations show the innovative framework does 
 provide a robust, accurate, and scalable solution to loop closure and the overall problem monocular VSLAM.
 
-\section {SLAM++: Simultaneous Localisation and Mapping at the Level of Objects}
+%\section {SLAM++: Simultaneous Localisation and Mapping at the Level of Objects}
+\section{SLAM++}
 \subsection{Problem Statement}
 This paper focuses on the problem of implementing VSLAM on the level of 3D objects rather than low-level 
 primitives (i.e. points, lines, etc) that must be robustly matched. Moreover, much of the prior knowledge of
@@ -202,7 +206,7 @@ The authors of \cite{Salas-Moreno_2013_CVPR} reference a video submitted along w
 \subsection{Subsequent Conclusions}
 The authors of \cite{Salas-Moreno_2013_CVPR} makes several bold claims with regard to its own contributions to the literature. The graph based optimization method does indeed seem novel and the system has significantly large data compression ratio when compared to the KinectFusion algorithms. Unfortunately, the experimentally evaluated conclusions are quite sparse when compared to the dense and well-written introduction and methodology. The biggest issue pertains from the fact that no standard metric is used to compare the system's advantages and efficiently to other 3D-object-recognition-based VSLAM approaches. Though several claims are made about the paper's VSLAM advantages over other methods, there are no easy ways to determine the validity of these claims.
 %%%%%%%%%%%%%%%%%%%%
-\section {Good Features to Track for Visual SLAM}
+\section {Good Features to Track for VSLAM}
 \subsection{Problem Statement}
 The paper \cite{Zhang_2015_CVPR} focuses on the problem of feature selection for VSLAM since not all features 
 detected and tracked by conventional methods contribute to the accurate estimation of 
@@ -298,7 +302,8 @@ Q_j^T = \begin{bmatrix} \ \ H_j^T \ | \ (H_j F_j)^T \ | \ ... \ | \ (H_j F_j^{n-
 \end{equation}
 where $F$ is the process matrix that relates the motion model defined in \eqref{eq:stateVector} 
 from one state to the next. $H$ is the measurement Jacobian where the derivatives are arranged as follows (with features and anchors abbreviated as ``feat." and ``anch." respectively):
-\noindent{}$\begin{bmatrix}
+\\\\
+$\begin{bmatrix}
 \small{\text{image feat. w.r.t. camera state}}&\small{\text{image feat. w.r.t. world feat.}}\\
 \small{\text{image anch. w.r.t. camera state}}&0
 \end{bmatrix}$\\
