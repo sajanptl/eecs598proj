@@ -27,7 +27,7 @@
 \begin{document}
 
 %%%%%%%%% TITLE
-\title{Analysis and Implementation of VSLAM Methods}
+\title{Analysis and Implementation of Novel VSLAM Methods}
 
 \author{Sajan Patel\\
 University of Michigan\\
@@ -53,20 +53,20 @@ University of Michigan\\
 \begin{abstract}
 The overall problem of Visual Simultaneous Localization and Mapping (VSLAM) and its different aspects have 
 been researched in the computer vision community extensively. This paper critiques three papers on VSLAM 
-and provides an analysis of the innovative contributions of each. Robust Large Scale Monocular Simultaneous Localization and Mapping proposes a framework for implementing VSLAM using monocular cameras. SLAM++: Simultaneous Localisation and Mapping at the Level of Objects proposes a method for VLSAM using prior knowledge of the environment and object recognition. Good Features to Track for Visual SLAM (GF-SLAM) focuses on the aspect of finding good visual features to use in VSLAM based on their temporal observability. This paper also provides an analysis of the implementation of the GF-SLAM paper and the recreation of the paper's key experiment.
+and provides an analysis of the innovative contributions of each. Robust Large Scale Monocular Simultaneous Localization and Mapping proposes a framework for implementing VSLAM using monocular cameras. SLAM++: Simultaneous Localisation and Mapping at the Level of Objects proposes a method for VLSAM using prior knowledge of the environment coupled with object recognition. Good Features to Track for Visual SLAM (GF-SLAM) focuses on the aspect of finding good visual features to use in VSLAM based on their temporal observability. This paper also provides an analysis of the implementation of the GF-SLAM paper and a recreation of the paper's key experiment.
 \end{abstract}
 
 %%%%%%%%% BODY TEXT
 \section{Introduction}
-The problem of estimating a 3D model the environment as sensed by a camera as well as estimating the 
-camera's trajectory is Visual Simultaneous Localization and Mapping (VSLAM). The computer vision community has researched 
-and provided innovative solutions that focus on different aspects of the overall problem. In this paper, we analyze the following three CVPR conference papers on VSLAM, discussing their innovative solution to a particular aspect of VLSAM or the problem as a whole, implementation, and subsequent conclusions: 
+Visual Simultaneous Localization and Mapping (VSLAM) refers to the problem of estimating a 3D model of the environment as sensed by a camera as well as estimating the 
+camera's trajectory in relation to this model. The computer vision community has researched 
+and provided innovative solutions that focus on different aspects of this overall research problem. In this paper, we analyze the following three CVPR conference papers on VSLAM and discuss their approach to particular aspects of the problem. The three papers are: 
 \begin{enumerate}
 \item Robust Large Scale Monocular Visual SLAM \cite{Bourmaud_2015_CVPR}
 \item SLAM++: Simultaneous Localisation and Mapping at the Level of Objects \cite{Salas-Moreno_2013_CVPR}
 \item Good Features to Track for Visual SLAM \cite{Zhang_2015_CVPR} 
 \end{enumerate}
-We also provide an in-depth analysis of our implementation of \cite{Zhang_2015_CVPR} and the conclusions drawn from the reproduction of the paper's key experiment.
+We also reimplement \cite{Zhang_2015_CVPR} and recreate its key experiment.
 
 %------------------------------------------------------------------------
 % Critique of Monocular VSLAM
@@ -77,7 +77,7 @@ We also provide an in-depth analysis of our implementation of \cite{Zhang_2015_C
 This paper focuses on the problem of using calibrated monocular cameras to perform VSLAM 
 while making the 
 algorithm robust, accurate, and scalable. Monocular VSLAM comes with the challenge of not being able to 
-observe the scale of the scene of the environment. In order to overcome this, loop closures (returning to an observed location) need to be
+observe the scale of the scene of the environment. In order to overcome this, loop closures (the return of the camera to a previously observed location) needs to be
  detected. This is an issue in large environments where many scenes look alike and results in an erroneous 
 3D model if loop closures are not detected properly. Thus, the paper focuses not only on the general 
 problem of monocular VSLAM but also tackles 
@@ -88,14 +88,14 @@ a key subproblem of dealing with loop closure.
 To solve the problem of monocular VSLAM, the authors of \cite{Bourmaud_2015_CVPR} propose a 
 framework based on three innovations:
 1) a Structure from Motion (SfM) algorithm based on the \textit{Known Rotation Problem} \cite{KRot}  
-is used to estimate submaps which are parts of the camera trajectory and the unknown environment,
-2) a loopy belief propagation algorithm is used to efficiently aligns many submaps based 
+used to estimate submaps (parts of the camera trajectory and the unknown environment),
+2) a loopy belief propagation algorithm used to efficiently align submaps based 
 on a graph of relative 3D similarities to produce a global map that is consistent up to a scale factor, and
 3) an outlier removal algorithm that detects and removes outliers in the relative 3D similarity 
-graph is used to reject wrong loop closures.
+graph used to reject wrong loop closures.
 
 \subsection{Proposed Method}
-The paper proposes a four-part framework to implement the solution monocular VSLAM: 
+The paper proposes a four-part framework to implement the solution to monocular VSLAM: 
 1) keyframe selection, 2) submap reconstruction, 3) pairwise similarity estimation, and 4) large scale 
 relative similarity averaging.
 
@@ -134,17 +134,16 @@ Once the outliers are removed, the \textit{loopy belief propagation algorithm}
 \cite{Bourmaud_2015_CVPR} performs 
 graph inference by accumulating the measurements and variances on temporal 
 subgraphs of the original graph as it builds up final average global similarity. 
-This algorithm is parallelized, so it can be applied on a large scale of submaps.
+This algorithm is parallelized, so that it can be applied on a large scale of submaps.
 
 \subsection{Experimental Evaluation}
 To evaluate the proposed VSLAM framework, the authors compared its performance 
-with that of state of the art algorithms in \cite{10} and \cite{12} on the TUM RGB-D \cite{29} 
-and KITTI \cite{mv31} datasets and 
-with four different cameras with different resolutions on indoor videos they captured. 
+with to state of the art algorithms in \cite{10} and \cite{12} on the TUM RGB-D \cite{29} 
+and KITTI \cite{mv31} datasets. They also performed a separate experiment using four cameras with different resolutions on indoor videos they captured. 
 Each experiment used the same optimized parameters for the various parts of the algorithm. 
 When evaluating the results of the algorithms with respect to ground truth, a 3D similarity 
 obtained from the minimum distance between the estimated and actual camera trajectories 
-was used. When compared to the \cite{10} on the TUM RGB-D dataset , the author's approach 
+was used. When compared to the \cite{10} on the TUM RGB-D dataset, the author's approach 
 resulted in a 
 lower RMSE for camera trajectories. 
 When compared to \cite{12} on the KITTI dataset, 
@@ -153,7 +152,7 @@ thus performed better. When compared to \cite{10} on their own videos, the propo
 method outperformed it with respect to the ground truth motion of the camera. 
 In addition, the paper discusses the limitations of the framework in not being able to 
 estimate a pure rotation of the camera, the necessity for the sensed environment 
-to be static, and the necessary for consecutive relative similarities to be outlier free. 
+to be static, and the necessity for consecutive relative similarities to be outlier free. 
 However, the framework still has reasonable performance when applied to datasets 
 that involve some moving objects.
 
@@ -169,26 +168,26 @@ provide a robust, accurate, and scalable solution to loop closure and the overal
 %\section{SLAM++}
 \subsection{Problem Statement}
 This paper focuses on the problem of implementing VSLAM at the level of 3D objects rather than low-level 
-primitives (i.e. points, lines, etc) that must be robustly matched. Moreover, much of the prior knowledge of
+primitives that must be robustly matched (\eg points, lines, etc). Moreover, much of the prior knowledge of
  objects and the environment could be taken into account ``in the loop" of the VSLAM algorithm itself but is 
  currently wasted \cite{Salas-Moreno_2013_CVPR}. Thus, the authors of \cite{Salas-Moreno_2013_CVPR} 
- aim to solve the problem of implementing VSLAM with higher level features that can take into account the semantic labelling of geometry as objects and regions provided by the improved, efficient, and powerful hardware that exists today.
+ aim to solve the problem of implementing VSLAM with higher level features that can take into account the semantic labelling of geometry as objects and regions provided by the efficient hardware that exists today.
 
 %-------------------------------------------------------------------------
 \subsection{Innovative Contribution}
-To solve the problem of VSLAM approached from the perspective of 3D object recognition, the authors of \cite{Salas-Moreno_2013_CVPR} propose the innovation of building pose graph maps based on an ``object-oriented" approach that directly encodes the positions of recognized 3D structures. With each new sensor measurement, the graph is continually optimized and allows for efficient tracking of the camera system based on recognized landmarks. In addition to this, the algorithms make the assumption that the world has ``intrinsic symmetry in the form of repetitive objects" \cite{Salas-Moreno_2013_CVPR} thereby allowing for the the objects in a scene to be identified and segmented as salient repeated elements. KinnectFusion algorithms are used to scan and detect objects matched to previously created models which are then used in camera pose tracking. The algorithm leverages this repetitiveness along with the efficient use of GPU architectures to provide a real time processing system. 
+To solve the problem of VSLAM approached from the perspective of 3D object recognition, the authors of \cite{Salas-Moreno_2013_CVPR} propose the innovation of building pose graph maps based on an ``object-oriented" approach that directly encodes the positions of recognized 3D structures. With each new sensor measurement, the graph is continually optimized and allows for efficient tracking of the camera system based on recognized landmarks. In addition, the algorithms make the assumption that the world has ``intrinsic symmetry in the form of repetitive objects" \cite{Salas-Moreno_2013_CVPR} thereby allowing for the the objects in a scene to be identified and segmented as salient repeated elements. KinnectFusion algorithms are used to scan and detect objects matched to previously created models which are then used in camera pose tracking. The algorithm leverages this repetitiveness along with the efficient use of GPU architectures to provide a real time processing system. 
 
 %-------------------------------------------------------------------------
 \subsection{Proposed Method}
-\textbf{Creating an Object Database:} First, a database of models repeatedly occurring objects is created via known KinectFusion algorithms \cite{kf11}. 
+\textbf{Creating an Object Database:} First, a database of models of repeatedly occurring objects is created via known KinectFusion algorithms \cite{kf11}. 
 These are objects that are subsequently recognized and used in the VSLAM process. 
 
 \textbf{SLAM Map Representation:} The world is represented by a graph where each node stores the 6DOF 
-pose of discovered objects relative to a fixed world frame as well as an annotation of the label of the object from the database that it matches to.
+pose of the discovered object as well as its annotated label from the database.
 
 \textbf{Real-Time Object Recognition:} This portion of the method recognizes objects in the world based on standard mesh recognition algorithms similar to those in \cite{drost6}. The implementation is parallelized on GPUs to allow the real-time detection of multiple instances of multiple objects. These correspondences are obtained via the use of Point-Pair Features (PPFs) which are 4D descriptors of relative poses and pairs of oriented surface normals for each object. 
 
-\textbf{Camera Tracking and Object Pose Estimation:} The iterative closest point (ICP) algorithm \cite{icp15} is used to to track the pose of the camera model based on the earlier computed object based locations. A Huber penalty function is used to in this optimization process. Criteria is developed to ensure successful convergence of the tracking error.
+\textbf{Camera Tracking and Object Pose Estimation:} The iterative closest point (ICP) algorithm \cite{icp15} is used to to track the pose of the camera model based on the earlier computed object based locations. A Huber penalty function is used in this optimization process. Criteria is developed to ensure successful convergence of the tracking error.
 
 \textbf{Graph Optimization:} The poses of each static object are now viewed as a graph optimization problem which minimizes the sum over all the measurement constraints based on the known features of each object.
 
@@ -208,17 +207,17 @@ The authors of \cite{Salas-Moreno_2013_CVPR} reference a video submitted along w
 
 %-------------------------------------------------------------------------
 \subsection{Subsequent Conclusions}
-The authors of \cite{Salas-Moreno_2013_CVPR} makes several bold claims with regard to its own contributions to the literature. The graph based optimization method does indeed seem novel and the system has significantly large data compression ratio when compared to the KinectFusion algorithms. Unfortunately, the experimentally evaluated conclusions are quite sparse when compared to the dense and well-written introduction and methodology of the paper. The biggest issue pertains to the fact that no standard metric is used to compare the system's advantages and efficiently to other 3D-object-recognition-based VSLAM approaches. Though several claims are made about the paper's VSLAM advantages over other methods, there are no easy ways to determine the validity of these claims.
+The authors of \cite{Salas-Moreno_2013_CVPR} make several bold claims with regard to their contributions to the literature. The graph based optimization method does indeed seem novel and the system has a significantly large data compression ratio when compared to KinectFusion algorithms. Unfortunately, the experimentally evaluated conclusions are quite sparse when compared to the dense and well-written introduction and methodology of the paper. The biggest issue pertains to the fact that no standard metric is used to compare the system's advantages to other 3D-object-recognition-based VSLAM approaches. In conclusion, there remains no easy way to validate their claims.
 
 %%%%%%%%%%%%%%%%%%%%
 \section {Good Features to Track for VSLAM}
 \subsection{Problem Statement}
-This paper focuses on the problem of feature selection for VSLAM since not all features 
+This paper focuses on the problem of excessive eature selection for VSLAM since not all features 
 detected and tracked by conventional methods contribute to the accurate estimation of 
 camera trajectories and the overall map. Only a subset of all tracked and detected features 
 actually produces a good result for VSLAM, and furthermore, there are many different ways of
 detecting these features. As VSLAM applications grow to include large-scale reconstruction from
- large sets of features, an efficient algorithm that can be applied to features generated by any 
+ large sets of features, an efficient ranking algorithm that can be applied to features generated by any 
 detection method is necessary. Thus, this paper focuses on finding the best features out of any given 
 set of previously detected features as a preprocessing step for VSLAM.
 
@@ -239,20 +238,20 @@ VSLAM.
 
 \textbf{System Observability Measure}: To counter the use of extraneous features in the localization process 
 of VSLAM, the paper develops a metric of observability scores based on the temporal observability 
-for each detected feature in each captured video frame. Features are represented by their coordinates in the 
+of each detected feature in each captured video frame. Features are represented by their coordinates in the 
 image plane as well as the corresponding world coordinates, allowing this measure to be applied to features 
 extracted from video frames by any detection method. The general idea is that features with higher temporal 
 observability are scored higher and the set of \textit{good features} is created from all features whose scores are 
 above a specified threshold based on the application of VSLAM. These good features are then called 
-anchors.
+\textit{anchors}.
 
 \textbf{Rank-k Temporal Update of Observability Score}: The generation of feature observability 
 scores requires 
-the computation and storage of large observability matrices that increase over time. 
+the computation and storage of large observability matrices that increase in size over time. 
 The actual act of creating these matrices is inefficient and can lead to delays 
 in the SLAM process. To counter this, the authors propose a new algorithm to generate the 
 observability matrix 
-based on an incremental SVD of the system's observability matrix applied per time step.
+based on an incremental SVD of the matrix applied per time step.
 
 \textbf{Submodular Learning for Feature Grouping}: The ranking and thresholding of feature 
 observability scores may not 
@@ -266,8 +265,8 @@ SVD of the augmented system observability matrix of the anchor set and possible 
 \textbf{Dynamical Measurement Model of VSLAM System:}
 The authors use a constant velocity motion model that describes the motion of a VSLAM system in standard 
 Euclidian three space, 
-$SE(3)$, as the basis for their algorithm. The method requires the position and orientation as well as the linear 
-and angular velocities of the camera model of the VSLAM system: 
+$SE(3)$, as the basis for their algorithm. The method uses the position and orientation as well as the linear 
+and angular velocities of the system's camera model: 
 \begin{equation} \label{eq:stateVector}
 \boldsymbol{x}_{R_k}^W = (\boldsymbol{r}_{R_k}^W \ \ \ \  \boldsymbol{q}_{R_k}^W  \ \ \ \  \boldsymbol{v}_{R_k}^W  \ \ \ \  \boldsymbol{\omega}_{R_k}^W)^T
 \end{equation}
@@ -277,7 +276,7 @@ $\boldsymbol{v}_{R_k}^W$ is its velocity,
 and $\boldsymbol{\omega}_{R_k}^W$ is its angular velocity. All these quantities are with reference to the world frame as denoted by the superscript $W$ at time $k$. 
 The state vector is updated with each time segment by the SLAM system. 
 
-The algorithm requires access to the following properties of the features that are located by the SLAM system: 
+The algorithm requires access to the following properties of the features that are detected by the VSLAM system: 
 \begin{equation} \label{eq:featureProjection}
 \boldsymbol{p}_{i}^{R_k} = ({p}_{x_i}^{R_k} \ \ \ \  {p}_{y_i}^{R_k}  \ \ \ \  {p}_{z_i}^{R_k})^T = R^{R_k}_{W}((\boldsymbol{q}^{W}_{R_k})^{-1})(^{(i)}\boldsymbol{p}^{W}_{k} - \boldsymbol{r}^{W}_{R_k})
 \end{equation}
@@ -288,7 +287,7 @@ v_0 - fk_u\frac{p_y^{R_k}}{p_z^{R_k}}
 \end{bmatrix})
 \end{equation}
 where $\boldsymbol{p}_{i}^{R_k}$ is the pinhole projection of the features,  
-$\boldsymbol{h}_{x_i}$ is the projection of these coordinates on to the 2D pinhole plane, $R(\boldsymbol{q})$ is the rotation matrix of $\boldsymbol{q}$, and $fk_u, fk_v, u_0, and v_0$ are the camera's intrinsic parameters.
+$\boldsymbol{h}_{x_i}$ is the projection of these coordinates on to the 2D pinhole plane, $R(\boldsymbol{q})$ is the rotation matrix of $\boldsymbol{q}$, and $fk_u, fk_v, u_0,$ and $v_0$ are the camera's intrinsic parameters.
 These coordinates are obtained after correcting for distortion which involves the intrinsic parameters of the camera via the $distort(.)$ function from \cite{distort}.
 
 \textbf{Computation of System Observability Measure:} To compute the observability score for each feature,
@@ -297,7 +296,7 @@ of frames, $\tau$, of the SLAM process. When the current frame iteration grows l
  elements of the now fixed size ${Q}_{SOM}$ are replaced directly by the newest feature values. $\tau$ is 
  thus an important input parameter to the system as it governs the efficiency of the overall algorithm. 
  ${Q}_{SOM}$ itself is built as a function of the current frame number, $j$, where 
- $j<\tau$. 
+ $j<\tau$.
 \begin{equation} \label{eq:qsom}
 \boldsymbol{Q}_{SOM}(j) = \begin{bmatrix} \ \ Q_1^T \ | \ Q_2^T \ | \ ... \ | \ Q_j^T  \ \ \end{bmatrix}
 \end{equation}
@@ -322,12 +321,9 @@ score(f) = \sigma_{min}(Q_{SOM} \ for \ feature \ f)
 \textbf{Rank-k Temporal Update of Observability Score:} As can be seen from the preceding section, the computation of $Q_{SOM}$ is an extensive operation. To simplify matters the authors present an iterated SVD approach to creating $Q_{SOM}$ when $j>3$  and $j<\tau + 1$. 
 
 Fundamentally, $Q_{SOM}$ is created via \eqref{eq:qsom} 
-for the first three frames. For subsequent frames, the SVD of $Q_{SOM}$ is combined with the corresponding calculated ${Q}_{j}$ in \eqref{eq:Qjjj} to form the new $Q_{SOM}$. Again, this new definition of several matrices and involves the diagonalization of newly constructed matrices. 
-
-\textbf{FIX THIS AND ADD THE RANK-K UPDATE HERE!!!! We can't ask readers to read the GF Paper since we're supposed to be explaining it to them.}
-Please refer to the original text for the complete implementation details. The net gain by the algorithm is the creation of $Q_{SOM}$ by a rank-2r update instead of creating a whole new matrix. 
-
-For $j>\tau + 1$ , $Q_{SOM}$ is updated via replacement. The newest ${Q}_{j}$ in \eqref{eq:Qjjj} is computed and placed in the positions occupied by the oldest elements of the matrix. As an example, if at time k, $Q_{SOM}(k) = \begin{bmatrix} \ \ Q_1^T \ | \ Q_2^T \ | \ ... \ | \ Q_k^T  \ \ \end{bmatrix}$, then at time k+1, the oldest (i.e. the first element) is replaced, ${Q}_{SOM}(k+1) = \begin{bmatrix}\ \ Q_{k+1}^T \ | \ Q_2^T \ | \ ... \ | \ Q_k^T\ \ \end{bmatrix}$.
+for the first three frames. For subsequent frames, the SVD of $Q_{SOM}$ is combined with the corresponding calculated ${Q}_{j}$ in \eqref{eq:Qjjj} to form the new $Q_{SOM}$. 
+This process involves the redefinition and diagonization of several new matrices, the details of which are too lengthy to include here. For exact details, please refer to section 2.3 of \cite{Zhang_2015_CVPR}.\\
+\indent{}For $j>\tau + 1$ , $Q_{SOM}$ is updated via replacement. The newest ${Q}_{j}$ in \eqref{eq:Qjjj} is computed and placed in the positions occupied by the oldest elements of the matrix. As an example, if at time $k$, $Q_{SOM}(k) = \begin{bmatrix} \ \ Q_1^T \ | \ Q_2^T \ | \ ... \ | \ Q_k^T  \ \ \end{bmatrix}$, then at time $k+1$, the oldest (\ie the first element) is replaced, ${Q}_{SOM}(k+1) = \begin{bmatrix}\ \ Q_{k+1}^T \ | \ Q_2^T \ | \ ... \ | \ Q_k^T\ \ \end{bmatrix}$.
 
 \textbf{Submodular Learning for Feature Grouping:} If the set of anchors created after the thresholding of the feature observability scores is smaller than desired, a greedy submodular learning algorithm upgrades features with with the next best scores to anchors to complete the anchor set. This is done by creating an SOM of just the anchors and candidate rows for each remaining feature. The algorithm iterates through each candidate feature, appending it's row to the end of the anchor SOM and then taking the SVD of that matrix to get the observability score for that feature via \eqref{eq:Qjjj} with the modification that $Q_{SOM}$ is now the anchor and candidate row SOM. The feature whose row produces the maximum observability score is upgraded to be an anchor and removed from the set of features. This greedy algorithm recomputes the anchor and candidate SOMs and repeats the process until the the desired number of anchors is obtained.
 
@@ -336,11 +332,9 @@ The feature reduction algorithm was implemented on readily
 available simulated VSLAM data that was created for \cite{31}. 
 The robot is made to move in a circle in a simulated environment of dimensions 12mX12m with 72 
 landmarks forming a square. The VSLAM process uses an Extended Kalman Filter (EKF) to estimate the locations 
-of each landmark and subsequent estimate its own position in the map. In the original EKF algorithm, the 
+of each landmark and subsequently estimates its own position in the map. In the original EKF algorithm, the 
 simulated robot detects as many landmarks that it can detect. The authors apply their SVD ranking approach
- to select a certain subset of the number of features selected. By changing the number of features used as 
- well as the observation noise, they run the VSLAM simulation several times and compare their results to 
- that of the original algorithm. They run each simulation 40 times and count the number of times their 
+ to select a certain subset of the number of features located. Experimentally, the authors parameterize the number of anchors used as well as the noisiness of the system, and compare their generated results to that of the original system. They simulation is run over 40 trials and count the number of times their 
  algorithm outperforms the original. The noise values used are $\sigma=\{0.5, 1.0, 1.5, 2.0, 2.5\} $. 
 The number of features used are $ K = \{ 3, 4, 5, 6, 7, 8, 10, 12 \}$. 
 The results are provided in Table 1. 
@@ -373,7 +367,7 @@ The results are provided in Table 1.
 %%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Our Implementation}
-We chose to re-implement the method and key experiment of \cite{Zhang_2015_CVPR}. The first step was to run the original EKF-VSLAM algorithm in \cite{31} that was used by \cite{Zhang_2015_CVPR} in its experimentation. The code for \cite{31} was readily available to download and use online.
+We chose to re-implement the method and key experiment of \cite{Zhang_2015_CVPR}. The first step was to run the original EKF-VSLAM algorithm in \cite{31} that was used by the authors in their experimentation. The code for \cite{31} was readily available to download and use online.
 
 \textbf{Algorithm Structure:} The algorithm simulates a robot moving in a circular trajectory surrounded by 72 detectable landmarks. A monocular camera is placed on the robot for visual sensing purposes. Broadly the algorithm is divided in to the following sections:
 \begin{enumerate}
@@ -383,7 +377,7 @@ We chose to re-implement the method and key experiment of \cite{Zhang_2015_CVPR}
 \item \textit{Visualization}: The corresponding position of the landmarks, detected features, actual robot's position and orientation and estimated robot's position and orientation are visually updated on a three dimensional plot.
 \end{enumerate}
 
-\textbf{Calculating $\boldsymbol{Q}_{SOM}$:} The first step in generating the observability matrix is mapping  features detected by the SLAM algorithm to their corresponding $\boldsymbol{p}_{i}^{R_k}$'s from \eqref{eq:featureProjection} and $\boldsymbol{h}_{x_i}$ from \eqref{eq:featureProjection2}. This is done between step 2 and 3 by extracting the corresponding elements from the algorithms pinhole perspective calculations. The camera's corresponding position and orientation, $\boldsymbol{x}_{R_k}^W$, is also extracted by  \eqref{eq:stateVector}. These features are used to create a corresponding $H$ matrix which in turn is used to iteratively build up $Q_{SOM}$ as described in \eqref{eq:qsom} and \eqref{eq:Qjjj}. $Q_{SOM}$ is created to contain information from 10 iterations of the EKF algorithm at a time i.e. $\tau = 10$. As described previously, $Q_{SOM}$ is initially created iteratively, then via the iterative SVD and finally via the replacement method.
+\textbf{Calculating $\boldsymbol{Q}_{SOM}$:} The first step in generating the observability matrix is mapping  features detected by the SLAM algorithm to their corresponding $\boldsymbol{p}_{i}^{R_k}$'s from \eqref{eq:featureProjection} and $\boldsymbol{h}_{x_i}$ from \eqref{eq:featureProjection2}. This is done between step 2 and 3 by extracting the corresponding elements from the algorithms pinhole perspective calculations. The camera's corresponding position and orientation, $\boldsymbol{x}_{R_k}^W$, is also extracted by  \eqref{eq:stateVector}. These features are used to create a corresponding $H$ matrix which in turn is used to iteratively build up $Q_{SOM}$ as described in \eqref{eq:qsom} and \eqref{eq:Qjjj}. $Q_{SOM}$ is created to contain information from 10 iterations of the EKF algorithm at a time, \ie $\tau = 10$. As described previously, $Q_{SOM}$ is initially created iteratively, then via the iterative SVD and finally via the replacement method.
   
 \textbf{Feature Scoring:} Step two provides us with a list of features that has been detected by the robot. Each of these features have corresponding rows in the $Q_{SOM}$ matrix. For each feature, the corresponding rows are iteratively extracted and concatenated to form a feature matrix. 
 The SVD is computed for each of these matrices and the minimum positive singular value is extracted as a
@@ -393,12 +387,14 @@ as the corresponding $\boldsymbol{p}_{i}^{R_k}$'s and $\boldsymbol{h}_{x_i}$'s. 
 application-specified threshold is designated as the anchor set and is passed on to the localization step and the algorithm proceeds as normal.\\
 \indent{}\textbf{Submodular Learning:} We implemented submodular learning to complete the anchor set as described by the paper's proposed greedy algorithm. This portion of the implementation also runs only if the resultant set of anchors after thresholding the feature scores is less than two below the desired number of 
 anchors.\\
-\indent{}\textbf{Experimental Implementation:} The experiment described in \cite{Zhang_2015_CVPR} was recreated exactly.
-\textbf{(WTF is this saying? Did we run 40 times 200 iterations?) A total of 40 experiments were performed at a fixed seeded location.} The experiment sweeps over 200 iterations for each combination of pixel noise and number of anchors from the follow sets: $\sigma=\{0.5, 1.0, 1.5, 2.0, 2.5\} $ and $ K = \{ 3, 4, 5, 6, 7, 8, 10, 12 \}$. The positional and Euclidian L2-norms are used to compare the results of the original algorithm and our.\\
-\indent{}\textbf{Experimental Results:} Figure 1 shows the results of the experiment. Table 2 results obtained in terms of the positional norm. 
-Table 3 provides the results obtained in terms of the Euclidian norm. 
-Our implementation performed better then the original in 8/40 cases (20\%) in terms of the positional norm. 
-In terms of the Euclidian norm, it performed better in 14/40 cases (35\%).
+\indent{}\textbf{Experimental Implementation:} The experiment described in \cite{Zhang_2015_CVPR} is recreated exactly.
+We run the experiment over 40 trials for different values of pixel noise and a chosen number of features. The following values are used to generate the 40 trials: $\sigma=\{0.5, 1.0, 1.5, 2.0, 2.5\} $ and $ K = \{ 3, 4, 5, 6, 7, 8, 10, 12 \}$. Each trial runs for 200 video frames. The positional and Euclidian L2-norms are used to compare the the generated results to that of the orignal EKF method.\\
+\indent{}\textbf{Experimental Results:} Figure 1 shows the results of the experiment. 
+Table 1 displays the number of times the authors were succesful in beating the EKF method using their approach.
+Table 2 displays the positional norm achieved by the EKF method as compared to our algorithm over noise values. 
+Table 3 displays the Euclidian norm achieved by the EKF method as compared to our algorithm over noise Our. 
+values implementation performed better then the original in 8/40 cases (20\%) in terms of the positional norm. 
+In terms of the Euclidian norm, it performed better in 14/40 cases (35\%). These results are tabulated in Table 4.
 %----
 \begin{table}[h]
 \begin{center}
@@ -461,10 +457,29 @@ $\sigma$ & Avg. ($\sum_k || \Delta \boldsymbol{\theta}_{R_k}^W ||_2)_{all}$ & Av
 \end{table}
 %--------------
 
-\subsection{Subsequent Conclusions}
-As can be seen, the results we obtained do not agree with those in \cite{Zhang_2015_CVPR} though the experiment (including all procedures, parameters, and metrics) was reproduced exactly. We believe the reason for this an incorrect creation of the $Q_{SOM}$ matrix. This paper turned out to be particularly difficult to re-implement. The main reason behind this was the convoluted mathematical definitions and notations used by the authors especially with regard to the contents and creation of $Q_{SOM}$, including each feature's temporal contribution of a row to the matrix and the correspondence of the matrix's singular values to individual features. We tried to contact the authors via email but are unfortunately yet to hear back from them. They also do not provide any of the software or code used.
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+Metric Used & Num. Successful & Accuracy  \\
+\hline
+ Translation Error &   &   \\
+$ \sum_k || \Delta \boldsymbol{r}_{R_k}^W ||_2 $ & 8/40 & 20.0\% \\ 
+%&   &   \\
+\hline
+Rotation Error &   &   \\
+$ \sum_k || \Delta \boldsymbol{\theta}_{R_k}^W ||_2 $ & 14/40 & 35.0\% \\
+%&   & \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Our experimental results.}
+\end{table}
 
-Based on the metrics they define, the author's feature scoring algorithm appears to successfully aid VSLAM processes. Unfortunately, their results do not appear to be easy to reproduce. For this algorithm to achieve more success in the community it is our suggestion that the authors clean up their mathematical notation as well as release commented software and code which performs the algorithm successfully.    
+\subsection{Subsequent Conclusions}
+As can be seen, our results do not agree with those in \cite{Zhang_2015_CVPR} though the experiment (including all procedures, parameters, and metrics) was reproduced exactly. We believe the reason for this an incorrect creation of the $Q_{SOM}$ matrix. This paper turned out to be particularly difficult to re-implement. The main reason behind this was the convoluted mathematical definitions and notations used by the authors especially with regard to the contents and creation of $Q_{SOM}$, including each feature's temporal contribution of a row to the matrix and the correspondence of the matrix's singular values to individual features. We tried to contact the authors via email but are unfortunately yet to hear back from them. They also do not provide any of the software or code used.
+
+Based on the metrics they define and the empirical results they provide, the author's feature scoring algorithm appears to successfully aid VSLAM processes. Unfortunately, their results do not appear to be easy to reproduce. For this algorithm to achieve more success in the community it is our suggestion that the authors clean up their mathematical notation as well as release commented software and code which performs the algorithm successfully.    
 
 \section{Conclusion}
 The vision community has done much research in the area of VSLAM and its various aspects. Through this paper, we present an analysis of three papers' innovative methods: large-scale monocular VSLAM that is robust to observed data size in \cite{Bourmaud_2015_CVPR}, KinnectFusion-based VSLAM that relies on 3D object recognition and prior models of those objects in \cite{Salas-Moreno_2013_CVPR}, and the selection of a subset of detected features to use for VSLAM based on their temporal observability in \cite{Zhang_2015_CVPR}. We also present our implementation of GF-SLAM from \cite{Zhang_2015_CVPR} and the results and conclusions drawn from our attempt to recreate the main experiment it was originally tested on. 
